@@ -125,10 +125,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <script>
-// ============================================================
-// ADIM 3: Aşağıdaki satırı Apps Script URL'nizle güncelleyin
-// ============================================================
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzvjvSMvXeRr8SnOF7c8E5fvKUnc98IIzbi3sG7qvtH4R-C9a8nksQdL4kDqYoD1Klxmg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbemwro7hbVGjMGclwQ4lNgOz3959qaVi2FEryUzOlWxm99dvGy4necidbFyx1r66aNQ/exec";
 
 const ADMIN_PASS = "admin123";
 const CEO_PASS   = "ceo456";
@@ -177,8 +174,7 @@ function switchTab(tab){
   tab==="add"?renderAdd():fetchAndRender();
 }
 
-function isConfigured(){return SCRIPT_URL&&SCRIPT_URL!=="https://script.google.com/macros/s/AKfycbzvjvSMvXeRr8SnOF7c8E5fvKUnc98IIzbi3sG7qvtH4R-C9a8nksQdL4kDqYoD1Klxmg/exec";}
-
+// Apps Script CORS fix: GET requests work fine, POST needs no-cors with form encoding
 async function apiGet(){
   const res=await fetch(SCRIPT_URL+"?action=getPosts");
   const d=await res.json();
@@ -186,26 +182,26 @@ async function apiGet(){
 }
 
 async function apiPost(body){
-  const res=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  // Apps Script accepts POST via application/x-www-form-urlencoded to avoid CORS preflight
+  const params = new URLSearchParams();
+  params.append("payload", JSON.stringify(body));
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+    body: params.toString()
+  });
   return res.json();
 }
 
 async function fetchAndRender(){
   const el=document.getElementById("mainContent");
-  if(!isConfigured()){
-    el.innerHTML=`<div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:10px;padding:1.25rem;font-size:13px;color:#5D4037;line-height:1.7">
-      <strong style="color:#E65100">⚙️ Kurulum gerekiyor</strong><br><br>
-      Birlikte indirilen <strong>KURULUM.md</strong> dosyasındaki adımları takip ederek Apps Script URL'sini bu dosyaya ekleyin.
-    </div>`;
-    return;
-  }
   el.innerHTML=`<div class="loading"><span class="spinner"></span>Yükleniyor...</div>`;
   try{
     allPosts=await apiGet();
     updateCounts();
     renderPosts(el);
   }catch(e){
-    el.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div>Bağlantı hatası. Apps Script URL'sini kontrol edin.</div></div>`;
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div>Bağlantı hatası: ${e.message}</div></div>`;
   }
 }
 
