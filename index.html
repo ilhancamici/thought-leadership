@@ -177,7 +177,7 @@ function switchTab(tab){
   tab==="add"?renderAdd():fetchAndRender();
 }
 
-function isConfigured(){return SCRIPT_URL&&SCRIPT_URL!=="BURAYA_APPS_SCRIPT_URL_YAPISTIRIN";}
+function isConfigured(){return SCRIPT_URL&&SCRIPT_URL!=="https://script.google.com/macros/s/AKfycbzvjvSMvXeRr8SnOF7c8E5fvKUnc98IIzbi3sG7qvtH4R-C9a8nksQdL4kDqYoD1Klxmg/exec";}
 
 async function apiGet(){
   const res=await fetch(SCRIPT_URL+"?action=getPosts");
