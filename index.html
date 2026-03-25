@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkedIn Post Onay Platformu</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F5F5;min-height:100vh;color:#1A1A1A}
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;min-height:100vh}
+.login-card{background:#fff;border:1px solid #E0E0E0;border-radius:12px;padding:2rem;width:100%;max-width:380px;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;justify-content:center}
+.logo-icon{width:36px;height:36px;background:#0A66C2;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px}
+.login-title{font-size:18px;font-weight:600;color:#1A1A1A;text-align:center;margin-bottom:0.25rem}
+.login-sub{font-size:13px;color:#666;text-align:center;margin-bottom:1.5rem}
+.role-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:1.25rem}
+.role-tab{padding:9px;border:1px solid #E0E0E0;border-radius:8px;cursor:pointer;font-size:13px;text-align:center;color:#666;background:#F9F9F9;transition:all 0.15s;user-select:none}
+.role-tab.active{border-color:#0A66C2;color:#0A66C2;background:#E8F0FE;font-weight:500}
+.form-group{margin-bottom:1rem}
+.form-label{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.form-input{width:100%;padding:9px 11px;border:1px solid #D0D0D0;border-radius:8px;font-size:14px;background:#fff;color:#1A1A1A;outline:none;transition:border-color 0.15s}
+.form-input:focus{border-color:#0A66C2}
+.btn-primary{width:100%;padding:10px;background:#0A66C2;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;margin-top:0.5rem;transition:background 0.15s}
+.btn-primary:hover{background:#004E9A}
+.error-msg{font-size:12px;color:#C62828;margin-top:8px;text-align:center}
+.main-app{display:none;flex-direction:column;min-height:100vh}
+.header{background:#fff;border-bottom:1px solid #E0E0E0;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:10}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-logo{width:28px;height:28px;background:#0A66C2;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
+.header-title{font-size:15px;font-weight:600;color:#1A1A1A}
+.header-right{display:flex;align-items:center;gap:10px}
+.role-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.badge-admin{background:#FFF3E0;color:#E65100}
+.badge-ceo{background:#E8F0FE;color:#0A66C2}
+.btn-logout{font-size:12px;color:#666;background:none;border:1px solid #E0E0E0;border-radius:8px;padding:5px 12px;cursor:pointer}
+.btn-logout:hover{background:#F5F5F5}
+.tabs{display:flex;border-bottom:1px solid #E0E0E0;background:#fff;padding:0 1.5rem;overflow-x:auto}
+.tab{padding:13px 16px;font-size:13px;color:#666;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all 0.15s}
+.tab.active{color:#0A66C2;border-bottom-color:#0A66C2;font-weight:500}
+.tab-count{display:inline-flex;align-items:center;justify-content:center;background:#F0F0F0;border-radius:20px;font-size:11px;padding:1px 7px;margin-left:5px;min-width:20px}
+.tab.active .tab-count{background:#E8F0FE;color:#0A66C2}
+.content{padding:1.5rem;max-width:860px;margin:0 auto;width:100%}
+.admin-add{background:#fff;border:1px solid #E0E0E0;border-radius:12px;padding:1.5rem;margin-bottom:1.25rem}
+.add-title{font-size:14px;font-weight:600;color:#1A1A1A;margin-bottom:1rem}
+.textarea-post{width:100%;padding:10px 12px;border:1px solid #D0D0D0;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:130px;background:#fff;color:#1A1A1A;margin-bottom:10px;line-height:1.65;outline:none;transition:border-color 0.15s}
+.textarea-post:focus{border-color:#0A66C2}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.btn-add{padding:9px 20px;background:#0A66C2;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s}
+.btn-add:hover{background:#004E9A}
+.btn-add:disabled{background:#9DB8D2;cursor:not-allowed}
+.posts-grid{display:flex;flex-direction:column;gap:12px}
+.post-card{background:#fff;border:1px solid #E0E0E0;border-radius:12px;padding:1.25rem}
+.post-card.approved{border-left:3px solid #0A66C2}
+.post-card.used{border-left:3px solid #388E3C;opacity:0.78}
+.card-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.cat-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#F1F1F1;color:#555;font-weight:500}
+.date-badge{font-size:11px;color:#888}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dot-pending{background:#FFA000}
+.dot-approved{background:#0A66C2}
+.dot-used{background:#388E3C}
+.card-body{font-size:13px;color:#1A1A1A;line-height:1.7;margin-bottom:12px;white-space:pre-wrap;max-height:120px;overflow:hidden;position:relative}
+.card-body.expanded{max-height:none}
+.fade-overlay{position:absolute;bottom:0;left:0;right:0;height:32px;background:linear-gradient(transparent,#fff)}
+.expand-btn{font-size:11px;color:#0A66C2;cursor:pointer;background:none;border:none;padding:0;margin-bottom:10px}
+.card-image{font-size:12px;color:#888;margin-bottom:10px;word-break:break-all}
+.card-image a{color:#0A66C2}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-approve{padding:6px 14px;background:#E8F0FE;color:#0A66C2;border:1px solid #0A66C2;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s}
+.btn-approve:hover{background:#0A66C2;color:#fff}
+.btn-approve:disabled,.btn-use:disabled{opacity:0.5;cursor:not-allowed}
+.btn-use{padding:6px 14px;background:#E8F5E9;color:#388E3C;border:1px solid #388E3C;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s}
+.btn-use:hover{background:#388E3C;color:#fff}
+.btn-delete{padding:6px 12px;background:none;color:#999;border:1px solid #E0E0E0;border-radius:8px;font-size:12px;cursor:pointer;margin-left:auto;transition:all 0.15s}
+.btn-delete:hover{color:#C62828;border-color:#C62828}
+.empty-state{text-align:center;padding:3rem 1rem;color:#999;font-size:13px}
+.empty-icon{font-size:36px;margin-bottom:0.75rem;opacity:0.35}
+.section-title{font-size:12px;font-weight:500;color:#999;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:1rem}
+.loading{text-align:center;padding:2rem;color:#999;font-size:13px}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid #E0E0E0;border-top-color:#0A66C2;border-radius:50%;animation:spin 0.7s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1A1A1A;color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity 0.2s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-logo"><div class="logo-icon">in</div></div>
+    <div class="login-title">Post Onay Platformu</div>
+    <div class="login-sub">Rolünüzü seçip şifrenizi girin</div>
+    <div class="role-tabs">
+      <div class="role-tab active" id="tab-admin" onclick="selectRole('admin')">Admin (Editör)</div>
+      <div class="role-tab" id="tab-ceo" onclick="selectRole('ceo')">CEO</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Şifre</label>
+      <input type="password" class="form-input" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Giriş Yap</button>
+    <div class="error-msg" id="loginErr" style="display:none">Hatalı şifre, tekrar deneyin.</div>
+  </div>
+</div>
+
+<div class="main-app" id="mainApp">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-logo">in</div>
+      <div class="header-title">Post Onay Platformu</div>
+    </div>
+    <div class="header-right">
+      <span class="role-badge" id="roleBadge"></span>
+      <button class="btn-logout" onclick="logout()">Çıkış</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" id="tabPending" onclick="switchTab('pending')">Bekleyen <span class="tab-count" id="cntPending">0</span></div>
+    <div class="tab" id="tabApproved" onclick="switchTab('approved')">Onaylanan <span class="tab-count" id="cntApproved">0</span></div>
+    <div class="tab" id="tabUsed" onclick="switchTab('used')">Kullanılan <span class="tab-count" id="cntUsed">0</span></div>
+    <div class="tab" id="tabAdd" onclick="switchTab('add')" style="display:none">+ Post Ekle</div>
+  </div>
+  <div class="content" id="mainContent"></div>
+</div>
+
+<script>
+// ============================================================
+// ADIM 3: Aşağıdaki satırı Apps Script URL'nizle güncelleyin
+// ============================================================
+const SCRIPT_URL = "https://script.google.com/a/macros/meditopia.com/s/AKfycbwwWMjFBwErrTcsz-4gue3xEkPMXCIcROtzm-yPF6-R1Fh_zfK6t9QuaXPRckioDT12TA/exec";
+
+const ADMIN_PASS = "admin123";
+const CEO_PASS   = "ceo456";
+
+let currentRole="admin", currentUser=null, selectedTab="pending", allPosts=[];
+
+function selectRole(r){
+  currentRole=r;
+  document.getElementById("tab-admin").classList.toggle("active",r==="admin");
+  document.getElementById("tab-ceo").classList.toggle("active",r==="ceo");
+  document.getElementById("pwInput").value="";
+  document.getElementById("loginErr").style.display="none";
+}
+
+function doLogin(){
+  const pw=document.getElementById("pwInput").value;
+  if(!((currentRole==="admin"&&pw===ADMIN_PASS)||(currentRole==="ceo"&&pw===CEO_PASS))){
+    document.getElementById("loginErr").style.display="block";return;
+  }
+  currentUser=currentRole;
+  document.getElementById("loginScreen").style.display="none";
+  document.getElementById("mainApp").style.display="flex";
+  const b=document.getElementById("roleBadge");
+  b.textContent=currentUser==="admin"?"Admin":"CEO";
+  b.className="role-badge "+(currentUser==="admin"?"badge-admin":"badge-ceo");
+  if(currentUser==="admin") document.getElementById("tabAdd").style.display="";
+  switchTab("pending");
+}
+
+function logout(){
+  currentUser=null;allPosts=[];
+  document.getElementById("loginScreen").style.display="flex";
+  document.getElementById("mainApp").style.display="none";
+  document.getElementById("pwInput").value="";
+  document.getElementById("loginErr").style.display="none";
+}
+
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+function switchTab(tab){
+  selectedTab=tab;
+  ["pending","approved","used","add"].forEach(t=>{
+    const el=document.getElementById("tab"+cap(t));
+    if(el) el.classList.toggle("active",t===tab);
+  });
+  tab==="add"?renderAdd():fetchAndRender();
+}
+
+function isConfigured(){return SCRIPT_URL&&SCRIPT_URL!=="BURAYA_APPS_SCRIPT_URL_YAPISTIRIN";}
+
+async function apiGet(){
+  const res=await fetch(SCRIPT_URL+"?action=getPosts");
+  const d=await res.json();
+  return d.posts||[];
+}
+
+async function apiPost(body){
+  const res=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  return res.json();
+}
+
+async function fetchAndRender(){
+  const el=document.getElementById("mainContent");
+  if(!isConfigured()){
+    el.innerHTML=`<div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:10px;padding:1.25rem;font-size:13px;color:#5D4037;line-height:1.7">
+      <strong style="color:#E65100">⚙️ Kurulum gerekiyor</strong><br><br>
+      Birlikte indirilen <strong>KURULUM.md</strong> dosyasındaki adımları takip ederek Apps Script URL'sini bu dosyaya ekleyin.
+    </div>`;
+    return;
+  }
+  el.innerHTML=`<div class="loading"><span class="spinner"></span>Yükleniyor...</div>`;
+  try{
+    allPosts=await apiGet();
+    updateCounts();
+    renderPosts(el);
+  }catch(e){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div>Bağlantı hatası. Apps Script URL'sini kontrol edin.</div></div>`;
+  }
+}
+
+function updateCounts(){
+  ["pending","approved","used"].forEach(s=>{
+    document.getElementById("cnt"+cap(s)).textContent=allPosts.filter(p=>p.status===s).length;
+  });
+}
+
+function renderPosts(el){
+  const filtered=allPosts.filter(p=>p.status===selectedTab);
+  if(!filtered.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">📄</div><div>Bu bölümde henüz post yok.</div></div>`;return;}
+  let html=`<div class="section-title">${filtered.length} post</div><div class="posts-grid">`;
+  filtered.forEach(p=>{
+    const isCeo=currentUser==="ceo",isAdmin=currentUser==="admin";
+    const dc=p.status==="pending"?"dot-pending":p.status==="approved"?"dot-approved":"dot-used";
+    const st=p.status==="pending"?"Bekliyor":p.status==="approved"?"Onaylandı":"Kullanıldı";
+    html+=`<div class="post-card ${p.status==="approved"?"approved":p.status==="used"?"used":""}">
+      <div class="card-meta">
+        <span class="cat-badge">${escH(p.category||"Genel")}</span>
+        ${p.date?`<span class="date-badge">📅 ${formatDate(p.date)}</span>`:""}
+        <span style="display:flex;align-items:center;gap:5px;margin-left:auto">
+          <span class="status-dot ${dc}"></span>
+          <span style="font-size:11px;color:#888">${st}</span>
+        </span>
+      </div>
+      <div class="card-body" id="body-${p.id}">${escH(p.text)}<div class="fade-overlay" id="fade-${p.id}"></div></div>
+      <button class="expand-btn" id="exp-${p.id}" onclick="toggleExpand('${p.id}')">Devamını gör</button>
+      ${p.imageUrl?`<div class="card-image">🖼️ <a href="${escH(p.imageUrl)}" target="_blank">${escH(p.imageUrl.length>55?p.imageUrl.slice(0,55)+"...":p.imageUrl)}</a></div>`:""}
+      <div class="card-actions">
+        ${isCeo&&p.status==="pending"?`<button class="btn-approve" onclick="changeStatus('${p.id}','approved',this)">Onayla</button>`:""}
+        ${(isAdmin||isCeo)&&p.status==="approved"?`<button class="btn-use" onclick="changeStatus('${p.id}','used',this)">Kullanıldı olarak işaretle</button>`:""}
+        ${isAdmin?`<button class="btn-delete" onclick="deletePost('${p.id}',this)">Sil</button>`:""}
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html+"</div>";
+  filtered.forEach(p=>checkOverflow(p.id));
+}
+
+function renderAdd(){
+  document.getElementById("mainContent").innerHTML=`
+  <div class="admin-add">
+    <div class="add-title">Yeni Post Ekle</div>
+    <textarea class="textarea-post" id="postText" placeholder="LinkedIn post metni buraya..."></textarea>
+    <div class="form-row">
+      <div><div class="form-label">Kategori / Konu</div><input class="form-input" id="postCat" placeholder="ör. Liderlik, İnovasyon..."></div>
+      <div><div class="form-label">Tahmini Yayın Tarihi</div><input class="form-input" type="date" id="postDate"></div>
+    </div>
+    <div style="margin-bottom:12px"><div class="form-label">Görsel URL (opsiyonel)</div><input class="form-input" id="postImg" placeholder="https://..."></div>
+    <button class="btn-add" id="addBtn" onclick="addPost()">Ekle</button>
+  </div>`;
+}
+
+async function addPost(){
+  const text=document.getElementById("postText").value.trim();
+  if(!text){alert("Post metni boş olamaz.");return;}
+  const btn=document.getElementById("addBtn");
+  btn.disabled=true;btn.textContent="Ekleniyor...";
+  try{
+    await apiPost({action:"addPost",post:{
+      id:Date.now(),text,
+      category:document.getElementById("postCat").value.trim()||"Genel",
+      date:document.getElementById("postDate").value||"",
+      imageUrl:document.getElementById("postImg").value.trim()||"",
+      status:"pending",
+      createdAt:new Date().toLocaleDateString("tr-TR")
+    }});
+    showToast("Post eklendi ✓");
+    switchTab("pending");
+  }catch(e){alert("Hata: "+e.message);btn.disabled=false;btn.textContent="Ekle";}
+}
+
+async function changeStatus(id,status,btn){
+  btn.disabled=true;
+  try{
+    await apiPost({action:"updateStatus",id,status});
+    showToast(status==="approved"?"Onaylandı ✓":"Kullanıldı olarak işaretlendi ✓");
+    await fetchAndRender();
+  }catch(e){alert("Hata: "+e.message);btn.disabled=false;}
+}
+
+async function deletePost(id,btn){
+  if(!confirm("Bu postu silmek istediğinizden emin misiniz?"))return;
+  btn.disabled=true;
+  try{await apiPost({action:"deletePost",id});showToast("Post silindi");await fetchAndRender();}
+  catch(e){alert("Hata: "+e.message);btn.disabled=false;}
+}
+
+function checkOverflow(id){
+  const b=document.getElementById("body-"+id),e=document.getElementById("exp-"+id),f=document.getElementById("fade-"+id);
+  if(!b||!e)return;
+  if(b.scrollHeight<=b.clientHeight+5){e.style.display="none";if(f)f.style.display="none";}
+}
+
+function toggleExpand(id){
+  const b=document.getElementById("body-"+id),e=document.getElementById("exp-"+id),f=document.getElementById("fade-"+id);
+  const ex=b.classList.toggle("expanded");
+  e.textContent=ex?"Kapat":"Devamını gör";
+  if(f)f.style.display=ex?"none":"";
+}
+
+function escH(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function formatDate(d){if(!d)return"";try{const[y,m,day]=d.split("-");return`${day}.${m}.${y}`;}catch{return d;}}
+
+let tt;
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),2500);
+}
+</script>
+</body>
+</html>
