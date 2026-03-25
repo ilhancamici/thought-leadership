@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+"<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -52,6 +52,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .post-card{background:#fff;border:1px solid #E0E0E0;border-radius:12px;padding:1.25rem}
 .post-card.approved{border-left:3px solid #0A66C2}
 .post-card.used{border-left:3px solid #388E3C;opacity:0.78}
+.post-card.rejected{border-left:3px solid #C62828;opacity:0.78}
 .card-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .cat-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#F1F1F1;color:#555;font-weight:500}
 .date-badge{font-size:11px;color:#888}
@@ -59,6 +60,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dot-pending{background:#FFA000}
 .dot-approved{background:#0A66C2}
 .dot-used{background:#388E3C}
+.dot-rejected{background:#C62828}
 .card-body{font-size:13px;color:#1A1A1A;line-height:1.7;margin-bottom:12px;white-space:pre-wrap;max-height:120px;overflow:hidden;position:relative}
 .card-body.expanded{max-height:none}
 .fade-overlay{position:absolute;bottom:0;left:0;right:0;height:32px;background:linear-gradient(transparent,#fff)}
@@ -68,7 +70,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn-approve{padding:6px 14px;background:#E8F0FE;color:#0A66C2;border:1px solid #0A66C2;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s}
 .btn-approve:hover{background:#0A66C2;color:#fff}
-.btn-approve:disabled,.btn-use:disabled{opacity:0.5;cursor:not-allowed}
+.btn-approve:disabled,.btn-use:disabled,.btn-reject:disabled{opacity:0.5;cursor:not-allowed}
+.btn-reject{padding:6px 14px;background:#FEECEC;color:#C62828;border:1px solid #C62828;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s}
+.btn-reject:hover{background:#C62828;color:#fff}
 .btn-use{padding:6px 14px;background:#E8F5E9;color:#388E3C;border:1px solid #388E3C;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s}
 .btn-use:hover{background:#388E3C;color:#fff}
 .btn-delete{padding:6px 12px;background:none;color:#999;border:1px solid #E0E0E0;border-radius:8px;font-size:12px;cursor:pointer;margin-left:auto;transition:all 0.15s}
@@ -118,6 +122,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="tabs">
     <div class="tab active" id="tabPending" onclick="switchTab('pending')">Bekleyen <span class="tab-count" id="cntPending">0</span></div>
     <div class="tab" id="tabApproved" onclick="switchTab('approved')">Onaylanan <span class="tab-count" id="cntApproved">0</span></div>
+    <div class="tab" id="tabRejected" onclick="switchTab('rejected')">Reddedilen <span class="tab-count" id="cntRejected">0</span></div>
     <div class="tab" id="tabUsed" onclick="switchTab('used')">Kullanılan <span class="tab-count" id="cntUsed">0</span></div>
     <div class="tab" id="tabAdd" onclick="switchTab('add')" style="display:none">+ Post Ekle</div>
   </div>
@@ -126,7 +131,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbemwro7hbVGjMGclwQ4lNgOz3959qaVi2FEryUzOlWxm99dvGy4necidbFyx1r66aNQ/exec";
-
 const ADMIN_PASS = "admin123";
 const CEO_PASS   = "ceo456";
 
@@ -167,14 +171,13 @@ function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 
 function switchTab(tab){
   selectedTab=tab;
-  ["pending","approved","used","add"].forEach(t=>{
+  ["pending","approved","rejected","used","add"].forEach(t=>{
     const el=document.getElementById("tab"+cap(t));
     if(el) el.classList.toggle("active",t===tab);
   });
   tab==="add"?renderAdd():fetchAndRender();
 }
 
-// Apps Script CORS fix: GET requests work fine, POST needs no-cors with form encoding
 async function apiGet(){
   const res=await fetch(SCRIPT_URL+"?action=getPosts");
   const d=await res.json();
@@ -182,14 +185,9 @@ async function apiGet(){
 }
 
 async function apiPost(body){
-  // Apps Script accepts POST via application/x-www-form-urlencoded to avoid CORS preflight
-  const params = new URLSearchParams();
-  params.append("payload", JSON.stringify(body));
-  const res = await fetch(SCRIPT_URL, {
-    method: "POST",
-    headers: {"Content-Type": "application/x-www-form-urlencoded"},
-    body: params.toString()
-  });
+  const params=new URLSearchParams();
+  params.append("payload",JSON.stringify(body));
+  const res=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:params.toString()});
   return res.json();
 }
 
@@ -206,8 +204,9 @@ async function fetchAndRender(){
 }
 
 function updateCounts(){
-  ["pending","approved","used"].forEach(s=>{
-    document.getElementById("cnt"+cap(s)).textContent=allPosts.filter(p=>p.status===s).length;
+  ["pending","approved","rejected","used"].forEach(s=>{
+    const el=document.getElementById("cnt"+cap(s));
+    if(el) el.textContent=allPosts.filter(p=>p.status===s).length;
   });
 }
 
@@ -216,10 +215,11 @@ function renderPosts(el){
   if(!filtered.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">📄</div><div>Bu bölümde henüz post yok.</div></div>`;return;}
   let html=`<div class="section-title">${filtered.length} post</div><div class="posts-grid">`;
   filtered.forEach(p=>{
-    const isCeo=currentUser==="ceo",isAdmin=currentUser==="admin";
-    const dc=p.status==="pending"?"dot-pending":p.status==="approved"?"dot-approved":"dot-used";
-    const st=p.status==="pending"?"Bekliyor":p.status==="approved"?"Onaylandı":"Kullanıldı";
-    html+=`<div class="post-card ${p.status==="approved"?"approved":p.status==="used"?"used":""}">
+    const isCeo=currentUser==="ceo", isAdmin=currentUser==="admin";
+    const dc={"pending":"dot-pending","approved":"dot-approved","used":"dot-used","rejected":"dot-rejected"}[p.status]||"dot-pending";
+    const st={"pending":"Bekliyor","approved":"Onaylandı","used":"Kullanıldı","rejected":"Reddedildi"}[p.status]||p.status;
+    const cardClass={"approved":"approved","used":"used","rejected":"rejected"}[p.status]||"";
+    html+=`<div class="post-card ${cardClass}">
       <div class="card-meta">
         <span class="cat-badge">${escH(p.category||"Genel")}</span>
         ${p.date?`<span class="date-badge">📅 ${formatDate(p.date)}</span>`:""}
@@ -233,7 +233,9 @@ function renderPosts(el){
       ${p.imageUrl?`<div class="card-image">🖼️ <a href="${escH(p.imageUrl)}" target="_blank">${escH(p.imageUrl.length>55?p.imageUrl.slice(0,55)+"...":p.imageUrl)}</a></div>`:""}
       <div class="card-actions">
         ${isCeo&&p.status==="pending"?`<button class="btn-approve" onclick="changeStatus('${p.id}','approved',this)">Onayla</button>`:""}
+        ${isCeo&&p.status==="pending"?`<button class="btn-reject" onclick="changeStatus('${p.id}','rejected',this)">Reddet</button>`:""}
         ${(isAdmin||isCeo)&&p.status==="approved"?`<button class="btn-use" onclick="changeStatus('${p.id}','used',this)">Kullanıldı olarak işaretle</button>`:""}
+        ${isAdmin&&p.status==="rejected"?`<button class="btn-approve" onclick="changeStatus('${p.id}','pending',this)">Tekrar bekleyene al</button>`:""}
         ${isAdmin?`<button class="btn-delete" onclick="deletePost('${p.id}',this)">Sil</button>`:""}
       </div>
     </div>`;
@@ -279,7 +281,8 @@ async function changeStatus(id,status,btn){
   btn.disabled=true;
   try{
     await apiPost({action:"updateStatus",id,status});
-    showToast(status==="approved"?"Onaylandı ✓":"Kullanıldı olarak işaretlendi ✓");
+    const msg={"approved":"Onaylandı ✓","rejected":"Reddedildi","used":"Kullanıldı olarak işaretlendi ✓","pending":"Bekleyene alındı"}[status]||"Güncellendi";
+    showToast(msg);
     await fetchAndRender();
   }catch(e){alert("Hata: "+e.message);btn.disabled=false;}
 }
